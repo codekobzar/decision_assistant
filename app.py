@@ -144,7 +144,7 @@ if 'debug_mode' not in st.session_state:
     st.session_state.debug_mode = False
 debug_mode = st.session_state.debug_mode
 
-debug_mode = st.toggle("Enable debug mode")
+# debug_mode = st.toggle("Enable debug mode")
 
 if 'decision_maker' in st.session_state:
     decision_maker = st.session_state['decision_maker']
