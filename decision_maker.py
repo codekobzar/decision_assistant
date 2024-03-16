@@ -7,6 +7,7 @@ import plotly.express as px
 
 
 cmap_input = Union[str, LinearSegmentedColormap]
+plotly_cmap_default = px.colors.sequential.Tealgrn
 
 class DecisionMaker:
 
@@ -338,13 +339,13 @@ class DecisionMaker:
             .style.format(format_str).background_gradient(cmap=cmap)
         )
 
-    def plot_score(self, sort_ascending: bool = True):
+    def plot_score(self, sort_ascending: bool = True, color_discrete_sequence: list[str] = plotly_cmap_default):
         fig = px.bar(
             self.decision_options_evaluation_df.T[['Score']].sort_values("Score", ascending=sort_ascending),
             x='Score', text='Score', orientation='h',
             labels={"index": "Decision option", "Score": "Decision score"},
-            color_discrete_sequence=px.colors.sequential.Tealgrn,
-            title="Decision options ranked by decision score"
+            title="Decision options ranked by decision score",
+            color_discrete_sequence=color_discrete_sequence,
         )
         fig.update_traces(textposition='outside', cliponaxis=False, textangle=0)
 
@@ -367,13 +368,13 @@ class DecisionMaker:
             }).background_gradient(axis=None, cmap=cmap)
         )
 
-    def plot_decision_options_evaluation_df(self):
+    def plot_decision_options_evaluation_df(self, color_discrete_sequence: list[str] = plotly_cmap_default):
         fig = (
             self.decision_options_evaluation_df
             .drop(index=['Score']).plot.bar(
                 barmode="group", text="value",
                 labels=dict(index="Importance factor", value="Factor value", variable="Decision option"),
-                color_discrete_sequence=px.colors.sequential.Tealgrn, # https://plotly.com/python/builtin-colorscales/
+                color_discrete_sequence=color_discrete_sequence,
             )
         )
         fig.update_traces(textposition='outside', cliponaxis=False, textangle=0)
@@ -395,13 +396,14 @@ class DecisionMaker:
             .style.format(format_str).background_gradient(axis=None, cmap=cmap)
         )
 
-    def plot_decision_options_evaluation_adj_by_importance_df(self):
+    def plot_decision_options_evaluation_adj_by_importance_df(
+            self, color_discrete_sequence: list[str] = plotly_cmap_default):
         fig = (
             self.decision_options_evaluation_adj_by_importance_df
             .drop(index=['Score']).T.round(1).plot.bar(
                 text="value",
                 labels=dict(index="Decision option", value="Factor value", variable="Importance factor"),
-                color_discrete_sequence=px.colors.sequential.Tealgrn,  # https://plotly.com/python/builtin-colorscales/
+                color_discrete_sequence=color_discrete_sequence,
             )
         )
         fig.update_traces(textposition='inside', cliponaxis=False, textangle=0)

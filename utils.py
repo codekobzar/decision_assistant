@@ -1,7 +1,10 @@
 from re import sub
+from typing import Union
+
+import toml
 
 
-def update_dict_key(dict_to_update: dict, old_key: str, new_key: str, new_value=None):
+def update_dict_key(dict_to_update: dict, old_key: str, new_key: str, new_value=None) -> dict:
     return {
         (new_key if k == old_key else k): (new_value if k == old_key and new_value else v)
         for k, v in dict_to_update.items()
@@ -29,3 +32,8 @@ def snake_case(s: str) -> str:
         sub('([A-Z][a-z]+)', r' \1',
             sub('([A-Z]+)', r' \1',
                 s.replace('-', ' '))).split()).lower()
+
+def parse_toml(path: str) -> Union[dict, list]:
+    with open(path, 'r') as f:
+        config = toml.load(f)
+    return config

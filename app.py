@@ -1,16 +1,20 @@
 import pandas as pd
+import plotly.express as px
 import streamlit as st
-from decision_maker import DecisionMaker
+
 from matplotlib.colors import LinearSegmentedColormap
 
+from decision_maker import DecisionMaker
 from decision_maker_defaults import default_decision_maker
 from decision_maker_mockup import example_decision_maker
 from progress_tracker import ProgressTracker
-from utils import snake_case
+from utils import snake_case, parse_toml
 
 pd.options.plotting.backend = "plotly"
-cmap = LinearSegmentedColormap.from_list("bggradient", ["#0E1117", "#4DD062"])
-
+streamlit_config = parse_toml(".streamlit/config.toml")
+cmap = LinearSegmentedColormap.from_list(
+    "bggradient", [streamlit_config['theme']['backgroundColor'], streamlit_config['theme']['primaryColor']])
+plotly_cmap = px.colors.sequential.Tealgrn  # https://plotly.com/python/builtin-colorscales/
 
 def update_session_state_from_decision_maker(decision_maker: DecisionMaker):
     st.session_state['decision_options_count'] = decision_maker.decision_options_count
@@ -365,7 +369,11 @@ with expander(section_labels[7]):
     decision_maker.compute_decision_options_evaluation_adj_by_importance_df()
     decision_maker.compute_decision_score()
 
-    st.plotly_chart(decision_maker.plot_score(), use_container_width=True)
+    st.plotly_chart(
+        decision_maker.plot_score(),
+        use_container_width=True,
+        color_discrete_sequence=plotly_cmap,
+    )
     next_and_back_buttons(section_labels[7])
 
 with expander(section_labels[8]):
@@ -383,7 +391,9 @@ with expander(section_labels[8]):
 
     with tab2:
         st.plotly_chart(
-            decision_maker.plot_decision_options_evaluation_df(), use_container_width=True
+            decision_maker.plot_decision_options_evaluation_df(),
+            use_container_width=True,
+            color_discrete_sequence=plotly_cmap,
         )
 
     st.subheader("Decision score drill-down by importance factor contribution")
@@ -400,7 +410,9 @@ with expander(section_labels[8]):
 
     with tab2:
         st.plotly_chart(
-            decision_maker.plot_decision_options_evaluation_adj_by_importance_df(), use_container_width=True
+            decision_maker.plot_decision_options_evaluation_adj_by_importance_df(),
+            use_container_width=True,
+            color_discrete_sequence=plotly_cmap,
         )
     back_button(section_labels[8])
 
