@@ -108,15 +108,12 @@ class DecisionMaker:
     def update_decision_option(self, i: int, value: str):
         old_value = self.decision_options_list[i]
         self.decision_options_list[i] = value
-        self.decision_options_evaluation_dict = update_dict_key(
-            dict_to_update=self.decision_options_evaluation_dict,
-            old_key=old_value,
-            new_key=value,
-            new_value={
-                k: self.DEFAULT_DECISION_OPTION_VALUE
-                for k in self.evaluation_factors_list
-            }
-        )
+        if value != old_value:
+            self.decision_options_evaluation_dict = update_dict_key(
+                dict_to_update=self.decision_options_evaluation_dict,
+                old_key=old_value,
+                new_key=value,
+            )
 
     def set_decision_option(self, i: int, value: str):
         if (i + 1) > len(self.decision_options_list):
@@ -177,18 +174,17 @@ class DecisionMaker:
     def update_evaluation_factor(self, i: int, value: str):
         old_value = self.evaluation_factors_list[i]
         self.evaluation_factors_list[i] = value
-        self.evaluation_factor_importance_dict = update_dict_key(
-            dict_to_update=self.evaluation_factor_importance_dict,
-            old_key=old_value,
-            new_key=value,
-            new_value=self.DEFAULT_EVALUATION_FACTOR_IMPORTANCE
-        )
+        if value != old_value:
+            self.evaluation_factor_importance_dict = update_dict_key(
+                dict_to_update=self.evaluation_factor_importance_dict,
+                old_key=old_value,
+                new_key=value,
+            )
         self.decision_options_evaluation_dict = {
-            k: update_dict_key(
+            k: v if value == old_value else update_dict_key(
                 dict_to_update=v,
                 old_key=old_value,
                 new_key=value,
-                new_value=self.DEFAULT_DECISION_OPTION_VALUE
             )
             for k, v in self.decision_options_evaluation_dict.items()
         }
