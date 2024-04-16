@@ -410,3 +410,26 @@ class DecisionMaker:
             xanchor="auto",
         ))
         return fig
+
+    def to_dataframe(self) -> pd.DataFrame:
+        df = self.decision_options_evaluation_df.join(self.evaluation_factor_importance_df)
+        df.index.name = self.decision
+        return df
+
+    def from_dataframe(self, df: pd.DataFrame):
+        decision_options_list = [c for c in df.columns if c not in ['Importance']]
+        evaluation_factors_list = [c for c in df.index if c not in ['Score']]
+        df = df.loc[evaluation_factors_list]
+
+        self.set_attributes(
+            decision=df.index.name,
+            decision_options_count=len(decision_options_list),
+            decision_options_list=decision_options_list,
+            evaluation_factors_count=len(evaluation_factors_list),
+            evaluation_factors_list=evaluation_factors_list,
+            evaluation_factor_importance_dict=df['Importance'].to_dict(),
+            decision_options_evaluation_dict=df.drop(columns=['Importance']).to_dict()
+        )
+
+    def to_csv(self, path: str = None):
+        return self.to_dataframe().to_csv(path)

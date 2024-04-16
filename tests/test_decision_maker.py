@@ -273,6 +273,15 @@ def example_decision_maker(
     decision_maker.set_decision_options_evaluation_with_dict(example_decision_options_evaluation_dict)
     return decision_maker
 
+@pytest.fixture
+def example_decision_maker_dataframe(
+        example_decision_maker
+):
+    df = example_decision_maker.decision_options_evaluation_df.join(
+        example_decision_maker.evaluation_factor_importance_df)
+    df.index.name = example_decision_maker.decision
+    return df
+
 class TestDecisionMaker:
     decision_maker = DecisionMaker()
 
@@ -499,3 +508,11 @@ class TestDecisionMaker:
             example_decision_options_evaluation_df_w_new_decision_option_evaluation)
 
         assert decision_maker_old == decision_maker_new
+
+    def test_to_dataframe(self, example_decision_maker, example_decision_maker_dataframe):
+        assert example_decision_maker.to_dataframe().equals(example_decision_maker_dataframe)
+
+    def test_from_dataframe(self, example_decision_maker, example_decision_maker_dataframe):
+        obtained_decision_maker = DecisionMaker()
+        obtained_decision_maker.from_dataframe(example_decision_maker_dataframe)
+        assert obtained_decision_maker == example_decision_maker
