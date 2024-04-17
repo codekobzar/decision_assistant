@@ -1,7 +1,9 @@
 import pandas as pd
 import pytest
 
+import decision_maker_mockup
 from decision_maker import DecisionMaker
+from decision_maker_defaults import default_decision_maker
 
 
 @pytest.fixture
@@ -516,3 +518,9 @@ class TestDecisionMaker:
         obtained_decision_maker = DecisionMaker()
         obtained_decision_maker.from_dataframe(example_decision_maker_dataframe)
         assert obtained_decision_maker == example_decision_maker
+
+    def test_from_dataframe_updates_smaller_decision_maker(self, example_decision_maker):
+        example_decision_maker_df = example_decision_maker.to_dataframe()
+        smaller_decision_maker = default_decision_maker
+        smaller_decision_maker.from_dataframe(example_decision_maker_df)
+        assert smaller_decision_maker == example_decision_maker

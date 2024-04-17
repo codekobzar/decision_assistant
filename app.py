@@ -215,6 +215,32 @@ with st.sidebar:
         if st.button("Unfold all sections", key='unfold_all_sections_button'):
             fold_all_sections(False)
 
+    with st.expander("Decision data download"):
+        st.download_button(
+            "Download decision data",
+            decision_maker.to_csv(),
+            "decision_assistant_data.csv",
+            "text/csv",
+            key='download_decision_data'
+        )
+
+    with st.expander("Decision data upload"):
+        decision_data_file = st.file_uploader(
+            "Upload decision data",
+            type=["csv"],
+            key="upload_decision_data"
+        )
+        if decision_data_file:
+            decision_data = pd.read_csv(decision_data_file, index_col=0)
+            st.write("Data preview")
+            st.dataframe(decision_data)
+            if st.button("Update decision assistant data"):
+                decision_maker.from_dataframe(decision_data)
+                update_session_state_from_decision_maker(decision_maker)
+        else:
+            st.write("No data uploaded")
+
+
 st.header("Decision inputs")
 with expander(section_labels[0]):
     decision_maker.set_decision(
