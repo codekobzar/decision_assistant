@@ -1,8 +1,9 @@
+import numpy as np
 import pandas as pd
 import pytest
 
 import decision_maker_mockup
-from decision_maker import DecisionMaker
+from decision_maker import DecisionMaker, InvalidInputError
 from decision_maker_defaults import default_decision_maker
 
 
@@ -284,6 +285,53 @@ def example_decision_maker_dataframe(
     df.index.name = example_decision_maker.decision
     return df
 
+@pytest.fixture
+def example_decision_maker_dataframe_wo_importance(
+        example_decision_maker_dataframe
+):
+    df = example_decision_maker_dataframe
+    return df.drop(columns=['Importance'])
+
+@pytest.fixture
+def example_decision_maker_dataframe_w_duplicated_decision_options(
+        example_decision_maker_dataframe
+):
+    df = example_decision_maker_dataframe
+    return pd.concat([df, df.drop(columns=['Importance'])], axis=1)
+
+@pytest.fixture
+def example_decision_maker_dataframe_w_duplicated_importance_factors(
+        example_decision_maker_dataframe
+):
+    df = example_decision_maker_dataframe
+    return pd.concat([df, df], axis=0)
+
+@pytest.fixture
+def example_decision_maker_dataframe_w_missing_values(
+        example_decision_maker_dataframe
+):
+    df = example_decision_maker_dataframe.copy()
+    df.iloc[0, 0] = np.nan
+    return df
+
+@pytest.fixture
+def example_decision_maker_dataframe_w_text_values(
+        example_decision_maker_dataframe
+):
+    df = example_decision_maker_dataframe.copy()
+    df.iloc[1, 1] = ""
+    df.iloc[2, 2] = "text"
+    return df
+
+@pytest.fixture
+def example_decision_maker_dataframe_w_values_out_of_range(
+        example_decision_maker_dataframe
+):
+    df = example_decision_maker_dataframe.copy()
+    df.iloc[3, 2] = 11
+    df.iloc[3, 3] = -1
+    return df
+
 class TestDecisionMaker:
     decision_maker = DecisionMaker()
 
@@ -524,3 +572,25 @@ class TestDecisionMaker:
         smaller_decision_maker = default_decision_maker
         smaller_decision_maker.from_dataframe(example_decision_maker_df)
         assert smaller_decision_maker == example_decision_maker
+
+    def test_from_dataframe_validation(
+            self,
+            example_decision_maker_dataframe,
+            example_decision_maker_dataframe_wo_importance,
+            example_decision_maker_dataframe_w_duplicated_decision_options,
+            example_decision_maker_dataframe_w_duplicated_importance_factors,
+            example_decision_maker_dataframe_w_missing_values,
+            example_decision_maker_dataframe_w_text_values,
+            example_decision_maker_dataframe_w_values_out_of_range
+    ):
+        DecisionMaker.validate_decision_dataframe(example_decision_maker_dataframe)
+        for df in [
+            example_decision_maker_dataframe_wo_importance,
+            example_decision_maker_dataframe_w_duplicated_decision_options,
+            example_decision_maker_dataframe_w_duplicated_importance_factors,
+            example_decision_maker_dataframe_w_missing_values,
+            example_decision_maker_dataframe_w_text_values,
+            example_decision_maker_dataframe_w_values_out_of_range
+        ]:
+            with pytest.raises(InvalidInputError):
+                DecisionMaker.validate_decision_dataframe(df)

@@ -9,6 +9,9 @@ import plotly.express as px
 cmap_input = Union[str, LinearSegmentedColormap]
 plotly_cmap_default = px.colors.sequential.Tealgrn
 
+class InvalidInputError(Exception):
+    pass
+
 class DecisionMaker:
 
     MIN_EVALUATION_FACTOR_IMPORTANCE = 0
@@ -416,7 +419,44 @@ class DecisionMaker:
         df.index.name = self.decision
         return df
 
+    @staticmethod
+    def validate_decision_dataframe(df):
+        if "Importance" not in df.columns:
+            raise InvalidInputError(
+                "Invalid input: 'Importance' column must be present in decision dataframe.")
+        if df.columns.duplicated().sum() > 0:
+            raise InvalidInputError(
+                "Invalid input: decision dataframe must have no duplicated column names.")
+        if df.index.duplicated().sum() > 0:
+            raise InvalidInputError(
+                "Invalid input: decision dataframe must have no duplicated row names.")
+        if df.isna().sum().sum() > 0:
+            raise InvalidInputError(
+                "Invalid input: decision dataframe must have no missing values.")
+        non_int_types = [col for col in df.astype(int, errors='ignore').dtypes if col != "int32"]
+        if len(non_int_types) > 0:
+            raise InvalidInputError(
+                "Invalid input: decision dataframe must only have integer values, "
+                f"not {non_int_types}.")
+        if (
+                (df['Importance'] > DecisionMaker.MAX_EVALUATION_FACTOR_IMPORTANCE)
+                | (df['Importance'] < DecisionMaker.MIN_EVALUATION_FACTOR_IMPORTANCE)
+        ).sum() > 0:
+            raise InvalidInputError(
+                "Invalid input: Importance values must be between "
+                f"{DecisionMaker.MAX_EVALUATION_FACTOR_IMPORTANCE} and "
+                f"{DecisionMaker.MIN_EVALUATION_FACTOR_IMPORTANCE}.")
+        if (
+                (df.drop(columns=['Importance']) > DecisionMaker.MAX_DECISION_OPTION_VALUE)
+                | (df.drop(columns=['Importance']) < DecisionMaker.MIN_DECISION_OPTION_VALUE)
+        ).sum().sum() > 0:
+            raise InvalidInputError(
+                "Invalid input: Decision evaluation values must be between "
+                f"{DecisionMaker.MAX_DECISION_OPTION_VALUE} and "
+                f"{DecisionMaker.MIN_DECISION_OPTION_VALUE}.")
+
     def from_dataframe(self, df: pd.DataFrame):
+        self.validate_decision_dataframe(df)
         decision_options_list = [c for c in df.columns if c not in ['Importance']]
         evaluation_factors_list = [c for c in df.index if c not in ['Score']]
         df = df.loc[evaluation_factors_list]
