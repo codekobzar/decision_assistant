@@ -230,11 +230,14 @@ with st.sidebar:
     with st.expander("Decision data upload"):
         decision_data_file = st.file_uploader(
             "Upload decision data",
-            type=["csv"],
+            type=["csv", "xlsx"],
             key="upload_decision_data"
         )
         if decision_data_file:
-            decision_data = pd.read_csv(decision_data_file, index_col=0)
+            if decision_data_file.name.endswith(".csv"):
+                decision_data = pd.read_csv(decision_data_file, index_col=0)
+            elif decision_data_file.name.endswith(".xlsx"):
+                decision_data = pd.read_excel(decision_data_file, index_col=0)
             st.write("Data preview")
             st.dataframe(decision_data)
             if st.button("Update decision data"):
