@@ -1,6 +1,7 @@
+import io
 import json
 import pandas as pd
-from typing import Union
+from typing import Union, Literal
 from matplotlib.colors import LinearSegmentedColormap
 from utils import update_dict_key
 import plotly.express as px
@@ -20,6 +21,7 @@ class DecisionMaker:
     MIN_DECISION_OPTION_VALUE = 0
     DEFAULT_DECISION_OPTION_VALUE = 5
     MAX_DECISION_OPTION_VALUE = 10
+
     def __init__(self):
         self.decision: str = ""
         self.decision_options_count: int = 2
@@ -457,10 +459,22 @@ class DecisionMaker:
         if error_message:
             raise InvalidInputError(error_message)
 
-    def from_dataframe(self, df: pd.DataFrame):
-        self.validate_decision_dataframe(df)
+    def from_dataframe(
+            self,
+            df: pd.DataFrame,
+            errors: Literal["raise", "message", "ignore"] = "raise"
+    ):
+        df = df.loc[[c for c in df.index if c != 'Score']]
+        if errors != "ignore":
+            if errors == "raise":
+                self.raise_invalid_input_error(df)
+            if errors == "message":
+                error_message = self.validate_decision_dataframe(df)
+                if error_message:
+                    return error_message
+
         decision_options_list = [c for c in df.columns if c not in ['Importance']]
-        evaluation_factors_list = [c for c in df.index if c not in ['Score']]
+        evaluation_factors_list = df.index.tolist()
         df = df.loc[evaluation_factors_list]
 
         self.set_attributes(
@@ -473,5 +487,23 @@ class DecisionMaker:
             decision_options_evaluation_dict=df.drop(columns=['Importance']).to_dict()
         )
 
+    @property
+    def save_options(self):
+        return {
+            'csv': self.to_csv(),
+            'xlsx': self.to_excel_writer()
+        }
+
     def to_csv(self, path: str = None):
         return self.to_dataframe().to_csv(path)
+
+    def to_excel_writer(self, path: str = None):
+        buffer = io.BytesIO()
+        # Create a Pandas Excel writer using XlsxWriter as the engine.
+        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+            # Write each dataframe to a different worksheet.
+            self.to_dataframe().to_excel(writer)
+
+            # Close the Pandas Excel writer and output the Excel file to the buffer
+            writer.close()
+            return buffer

@@ -218,11 +218,12 @@ with st.sidebar:
             fold_all_sections(False)
 
     with st.expander("Decision data download"):
+        file_type = st.selectbox("File type", list(decision_maker.save_options.keys()))
         st.download_button(
             "Download decision data",
-            decision_maker.to_csv(),
-            "decision_assistant_data.csv",
-            "text/csv",
+            decision_maker.save_options[file_type],
+            f"decision_assistant_data.{file_type}",
+            f"text/{file_type}",
             key='download_decision_data'
         )
 
@@ -237,11 +238,10 @@ with st.sidebar:
             st.write("Data preview")
             st.dataframe(decision_data)
             if st.button("Update decision data"):
-                error_message = DecisionMaker.validate_decision_dataframe(decision_data)
+                error_message = decision_maker.from_dataframe(decision_data, errors="message")
                 if error_message:
                     st.error(error_message)
                 else:
-                    decision_maker.from_dataframe(decision_data)
                     update_session_state_from_decision_maker(decision_maker)
                     st.success("Decision data successully updated.")
         else:
