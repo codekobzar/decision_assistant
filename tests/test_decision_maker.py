@@ -573,7 +573,7 @@ class TestDecisionMaker:
         smaller_decision_maker.from_dataframe(example_decision_maker_df)
         assert smaller_decision_maker == example_decision_maker
 
-    def test_from_dataframe_validation(
+    def test_raise_invalid_input_error(
             self,
             example_decision_maker_dataframe,
             example_decision_maker_dataframe_wo_importance,
@@ -593,4 +593,4 @@ class TestDecisionMaker:
             example_decision_maker_dataframe_w_values_out_of_range
         ]:
             with pytest.raises(InvalidInputError):
-                DecisionMaker.validate_decision_dataframe(df)
+                DecisionMaker.raise_invalid_input_error(df)

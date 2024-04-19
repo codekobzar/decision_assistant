@@ -183,6 +183,7 @@ st.title("Welcome to Decision Assistant!")
 st.write("This app helps you make decisions by understanding your values, "
          "their importance and how each option aligns with those.")
 
+# Debug mode section
 if debug_mode:
 
     col1, col2 = st.columns([1, 6])
@@ -204,6 +205,7 @@ if debug_mode:
         st.write("Progress tracker representation:")
         st.json(progress_tracker.to_dict(), expanded=False)
 
+# Sidebar
 with st.sidebar:
     with st.expander("Quick navigation"):
         if st.button("Fold all sections", key='fold_all_sections_button'):
@@ -234,13 +236,18 @@ with st.sidebar:
             decision_data = pd.read_csv(decision_data_file, index_col=0)
             st.write("Data preview")
             st.dataframe(decision_data)
-            if st.button("Update decision assistant data"):
-                decision_maker.from_dataframe(decision_data)
-                update_session_state_from_decision_maker(decision_maker)
+            if st.button("Update decision data"):
+                error_message = DecisionMaker.validate_decision_dataframe(decision_data)
+                if error_message:
+                    st.error(error_message)
+                else:
+                    decision_maker.from_dataframe(decision_data)
+                    update_session_state_from_decision_maker(decision_maker)
+                    st.success("Decision data successully updated.")
         else:
             st.write("No data uploaded")
 
-
+# Main section
 st.header("Decision inputs")
 with expander(section_labels[0]):
     decision_maker.set_decision(

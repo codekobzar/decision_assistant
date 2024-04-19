@@ -420,29 +420,25 @@ class DecisionMaker:
         return df
 
     @staticmethod
-    def validate_decision_dataframe(df):
+    def validate_decision_dataframe(df: pd.DataFrame):
         if "Importance" not in df.columns:
-            raise InvalidInputError(
-                "Invalid input: 'Importance' column must be present in decision dataframe.")
+            return "Invalid input: 'Importance' column must be present in decision dataframe."
         if df.columns.duplicated().sum() > 0:
-            raise InvalidInputError(
-                "Invalid input: decision dataframe must have no duplicated column names.")
+            return "Invalid input: decision dataframe must have no duplicated column names."
         if df.index.duplicated().sum() > 0:
-            raise InvalidInputError(
-                "Invalid input: decision dataframe must have no duplicated row names.")
+            return "Invalid input: decision dataframe must have no duplicated row names."
         if df.isna().sum().sum() > 0:
-            raise InvalidInputError(
-                "Invalid input: decision dataframe must have no missing values.")
+            return "Invalid input: decision dataframe must have no missing values."
         non_int_types = [col for col in df.astype(int, errors='ignore').dtypes if col != "int32"]
         if len(non_int_types) > 0:
-            raise InvalidInputError(
+            return (
                 "Invalid input: decision dataframe must only have integer values, "
                 f"not {non_int_types}.")
         if (
                 (df['Importance'] > DecisionMaker.MAX_EVALUATION_FACTOR_IMPORTANCE)
                 | (df['Importance'] < DecisionMaker.MIN_EVALUATION_FACTOR_IMPORTANCE)
         ).sum() > 0:
-            raise InvalidInputError(
+            return (
                 "Invalid input: Importance values must be between "
                 f"{DecisionMaker.MAX_EVALUATION_FACTOR_IMPORTANCE} and "
                 f"{DecisionMaker.MIN_EVALUATION_FACTOR_IMPORTANCE}.")
@@ -450,10 +446,16 @@ class DecisionMaker:
                 (df.drop(columns=['Importance']) > DecisionMaker.MAX_DECISION_OPTION_VALUE)
                 | (df.drop(columns=['Importance']) < DecisionMaker.MIN_DECISION_OPTION_VALUE)
         ).sum().sum() > 0:
-            raise InvalidInputError(
+            return (
                 "Invalid input: Decision evaluation values must be between "
                 f"{DecisionMaker.MAX_DECISION_OPTION_VALUE} and "
                 f"{DecisionMaker.MIN_DECISION_OPTION_VALUE}.")
+
+    @staticmethod
+    def raise_invalid_input_error(df: pd.DataFrame):
+        error_message = DecisionMaker.validate_decision_dataframe(df)
+        if error_message:
+            raise InvalidInputError(error_message)
 
     def from_dataframe(self, df: pd.DataFrame):
         self.validate_decision_dataframe(df)
