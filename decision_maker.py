@@ -431,7 +431,7 @@ class DecisionMaker:
             return "Invalid input: decision dataframe must have no duplicated row names."
         if df.isna().sum().sum() > 0:
             return "Invalid input: decision dataframe must have no missing values."
-        non_int_types = [col for col in df.astype(int, errors='ignore').dtypes if col != "int32"]
+        non_int_types = [col for col in df.astype(int, errors='ignore').dtypes if col not in ["int32", "int64"]]
         if len(non_int_types) > 0:
             return (
                 "Invalid input: decision dataframe must only have integer values, "
